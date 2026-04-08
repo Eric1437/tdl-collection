@@ -1,3 +1,6 @@
+# Starlette（FastAPI 依赖）要求 anyio<5；显式约束避免与 uvicorn/celery 等传递依赖解析到 anyio 5+
+anyio>=3.4.0,<5
+
 fastapi==0.115.6
 uvicorn[standard]==0.32.1
 celery[redis]==5.4.0
