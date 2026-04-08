@@ -1,0 +1,53 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DATABASE_URL: sqlite:////data/app.db
+      DATA_HOME: /data
+      TDL_HOME: /data/.tdl
+      DOWNLOAD_DIR: /data/downloads
+    volumes:
+      - tdl_data:/data
+    depends_on:
+      - redis
+    command: ["api"]
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DATABASE_URL: sqlite:////data/app.db
+      DATA_HOME: /data
+      TDL_HOME: /data/.tdl
+      DOWNLOAD_DIR: /data/downloads
+    volumes:
+      - tdl_data:/data
+    depends_on:
+      - redis
+      - api
+    command: ["worker", "--concurrency=1"]
+
+volumes:
+  tdl_data:
+  redis_data:

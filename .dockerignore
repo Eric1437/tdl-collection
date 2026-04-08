@@ -1,0 +1,12 @@
+.git
+.gitignore
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+.env
+*.md
+frontend/node_modules
+backend/.venv
+.cursor
+agent-tools
+mcps
