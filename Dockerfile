@@ -1,13 +1,5 @@
-# tdl binary (Linux amd64)
-ARG TDL_VERSION=v0.20.2
-FROM debian:bookworm-slim AS tdl-fetch
-ARG TDL_VERSION
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates wget \
-    && wget -q "https://github.com/iyear/tdl/releases/download/${TDL_VERSION}/tdl_Linux_64bit.tar.gz" -O /tmp/tdl.tgz \
-    && tar -xzf /tmp/tdl.tgz -C /usr/local/bin \
-    && chmod +x /usr/local/bin/tdl \
-    && rm /tmp/tdl.tgz \
-    && apt-get purge -y wget && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+# tdl：使用仓库内 docker/tdl/ 下的本地文件（避免构建时从网络下载）
+# 请先将 tdl_Linux_64bit.tar.gz 或解压后的 tdl 放入 docker/tdl/，参见 docker/tdl/README.txt
 
 FROM node:20-bookworm-slim AS frontend-build
 WORKDIR /fe
@@ -21,7 +13,18 @@ FROM python:3.12-slim-bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=tdl-fetch /usr/local/bin/tdl /usr/local/bin/tdl
+COPY docker/tdl/ /opt/tdl-in/
+RUN set -e; \
+    if [ -f /opt/tdl-in/tdl_Linux_64bit.tar.gz ]; then \
+      tar -xzf /opt/tdl-in/tdl_Linux_64bit.tar.gz -C /usr/local/bin; \
+    elif [ -f /opt/tdl-in/tdl ]; then \
+      cp /opt/tdl-in/tdl /usr/local/bin/tdl; \
+    else \
+      echo "ERROR: 请先将 tdl_Linux_64bit.tar.gz 或 tdl 放入 docker/tdl/ 后再构建镜像。说明见 docker/tdl/README.txt" >&2; \
+      exit 1; \
+    fi && \
+    chmod +x /usr/local/bin/tdl && \
+    rm -rf /opt/tdl-in
 
 WORKDIR /app
 

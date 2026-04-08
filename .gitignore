@@ -146,3 +146,7 @@ frontend/dist/
 backend/.venv/
 **/__pycache__/
 *.py[cod]
+
+# Docker 构建用本地 tdl（见 docker/tdl/README.txt）
+docker/tdl/tdl
+docker/tdl/tdl_Linux_64bit.tar.gz
